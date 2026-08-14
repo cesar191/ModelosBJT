@@ -39,11 +39,11 @@ def funcion_modelo_termico(cap_cal, alpha, cof_tra_cal,t_final):
 #valores del modelo termico que se pueden modificar dependiendo del pwm estos valores pueden cambiar.
 cap_cal = 700     #Capacidead Calorica [J/K]  
 alpha = 0.018     #Factor del calentador
-cof_tra_cal = 10  #Coeficiente de transferencia de calor por convección [W/m²K] 
+cof_tra_cal = 5   #Coeficiente de transferencia de calor por convección [W/m²K] 
 
 # el excel que contiene los datos de la grafica
 #path_document = 'DatosGrafica_AdquirirQ1_20260530_195139.xlsx'
-path_document = 'DatosGrafica_AdquirirQ1_20260525_113127.xlsx'
+path_document = 'data\\DatosGrafica_AdquirirQ1_20260530_195139.xlsx'
 archivo = pd.read_excel(path_document)
 
 # pwm de trabajo para recortar la señal y los datos en el tiempo

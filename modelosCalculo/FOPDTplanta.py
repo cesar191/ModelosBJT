@@ -6,7 +6,7 @@ from scipy.optimize import curve_fit
 
 # el excel que contiene los datos de la grafica
 # path_document = 'DatosGrafica_AdquirirQ1_20260530_195139.xlsx'
-path_document = 'DatosGrafica_AdquirirQ1_20260525_113127.xlsx'
+path_document = 'data\\DatosGrafica_AdquirirQ1_20260530_195139.xlsx'
 archivo = pd.read_excel(path_document, dtype=float)
 
 # pwm de trabajo para recortar la señal y los datos en el tiempo
