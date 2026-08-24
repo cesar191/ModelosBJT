@@ -6,7 +6,7 @@ from scipy.signal import lti, step
 
 
 # Ubicación del archivo de datos
-PATH_DOCUMENTO = 'DatosGrafica_AdquirirQ1_20260525_113127.xlsx'
+PATH_DOCUMENTO = 'data\\DatosGrafica_AdquirirQ1_20260525_113127.xlsx'
 # =====================================================================
 # 1. MODELOS MATEMÁTICOS (Fáciles de expandir en el futuro)
 # =====================================================================

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import control as co
 from collections import Counter
 
-
+#modelo FOPDT
 def funcion_fopdt_planta(dt, dyt, pwm_trabajo):
     # 1. Ganancia proporcional
     Kp_gain = ((dyt[-1])-dyt[0]) / (pwm_trabajo)
@@ -23,6 +23,7 @@ def funcion_fopdt_planta(dt, dyt, pwm_trabajo):
     theta_opt = time_star
 
     return [Kp_gain, Tau_opt, theta_opt]
+#modelo termico 
 def funcion_modelo_termico(cap_cal, alpha, cof_tra_cal,t_final):
     sigma = 5.67e-8         # Constante de Stefan-Boltzmann     fijo
     area = 1.2e-3           # Área efectiva del disipador [m²]  fijo
@@ -36,14 +37,34 @@ def funcion_modelo_termico(cap_cal, alpha, cof_tra_cal,t_final):
     print(f"Modelo térmico: K = {K:.4f}, tau = {tau:.2f}s")
     print(f"G(s): {K:.4f}/({tau:.2f}s + 1)")
     return [K, tau]
+#funcion para recortar
+def recort_signal(y,u,t,value_recort):
+    dyt,dxt,dt=[],[],[]
+    escalon=[],[]
+    for i in range(len(u)):
+        if(i!=0):
+            if((u[i]-u[i-1]>0 or u[i]-u[i-1]<0) and u[i]==value_recort):
+                escalon[0].append(u[i]-u[i-1])
+                escalon[1].append(t[i])          
+        if(u[i]==value_recort):
+            dyt.append(y[i]-y[0])
+            dxt.append(u[i])
+            dt.append(t[i])
+    dyt=np.array(dyt)
+    dxt=np.array(dxt)
+    dt=np.array(dt)-dt[0]
+    escalon=np.array(escalon)
+    return dyt,dxt,dt,escalon
+
+
 #valores del modelo termico que se pueden modificar dependiendo del pwm estos valores pueden cambiar.
 cap_cal = 700     #Capacidead Calorica [J/K]  
 alpha = 0.018     #Factor del calentador
 cof_tra_cal = 5   #Coeficiente de transferencia de calor por convección [W/m²K] 
 
 # el excel que contiene los datos de la grafica
-#path_document = 'DatosGrafica_AdquirirQ1_20260530_195139.xlsx'
-path_document = 'data\\DatosGrafica_AdquirirQ1_20260530_195139.xlsx'
+path_document = 'data\\DatosGrafica_AdquirirQ1_20260525_113127.xlsx'
+#path_document = 'data\\DatosGrafica_AdquirirQ1_20260530_195139.xlsx'
 archivo = pd.read_excel(path_document)
 
 # pwm de trabajo para recortar la señal y los datos en el tiempo
@@ -60,12 +81,13 @@ pwm = np.double(pwm)
 
 pwm_trabajo,_= Counter(pwm).most_common(1)[0]
 
-
+y,x,t,e=recort_signal(temperatura1,pwm,tiempo,pwm_trabajo)
+print(f"escalon {e}")
 # datos para recortar la señal y graficar solo el segmento útil
 dxt, dyt, dt = [], [], []
 
 for i in range(len(pwm)):
-    if pwm[i] == pwm_trabajo:
+    if pwm[i] >= pwm_trabajo:
         dxt.append(pwm[i])
         dyt.append(temperatura1[i] - temperatura1[0])
         dt.append(tiempo[i])

@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.signal import lti, step
+from collections import Counter
 
 # =====================================================================
 # 1. PARÁMETROS FÍSICOS (De modeloTermico.py)
@@ -12,14 +13,14 @@ from scipy.signal import lti, step
 SIGMA = 5.67e-8         # Constante de Stefan-Boltzmann     fijo
 AREA = 1.2e-3           # Área efectiva del disipador [m²]  fijo
 EPS = 0.9               # Emisividad del material           fijo
-COF_TRA_CAL = 5         # Coeficiente de transferencia de calor por convección [W/m²K]  variable
+COF_TRA_CAL = 10         # Coeficiente de transferencia de calor por convección [W/m²K]  variable
 ALPHA = 0.014           # Factor del calentador             variable
 MASA = 0.004            # Masa del componente [kg]          fijo
 CAP_CAL = 500           # Capacidad calorífica [J/K]        variable
 
 
-#PATH_DOCUMENTO = 'DatosGrafica_AdquirirQ1_20260525_113127.xlsx'
-PATH_DOCUMENTO = 'DatosGrafica_AdquirirQ1_20260530_195139.xlsx'
+PATH_DOCUMENTO = 'data\\DatosGrafica_AdquirirQ1_20260525_113127.xlsx'
+#PATH_DOCUMENTO = 'data\\DatosGrafica_AdquirirQ1_20260530_195139.xlsx'
 THETA_FIS = 7.0 # <--- AJUSTAR MANUALMENTE EL TIEMPO MUERTO AQUÍ
 
 # =====================================================================
