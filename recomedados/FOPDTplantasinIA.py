@@ -9,7 +9,7 @@ from collections import Counter
 #modelo FOPDT
 def funcion_fopdt_planta(dyt, pwm_trabajo, dt):
     # 1. Ganancia proporcional
-    Kp_gain = ((dyt[-1])-dyt[0]) / (pwm_trabajo*1)
+    Kp_gain = ((dyt[-1])-dyt[0]) / (pwm_trabajo)
     # 2. tau es el tiempo en el que tarda al llegar al 63.2%
     temp_63 = 0.632 * (dyt[-1] - dyt[0])
     index_63 = np.where(dyt >= temp_63)[0][0]
@@ -71,9 +71,17 @@ def system_control(Kp_Gain,Tau,Tetha,T_muestreo,typePID):
         kdiae=kpiae*0.348*Tau*((T_Control/Tau)**(0.914))
 
     elif(typePID=="PI" or typePID=="pi" or typePID=="Pi"):
-       kpzn,kizn,kdzn=0,0,0
-       kpiae,kiiae,kdiae=0,0,0
+       kdzn=0
+       kdiae=0
 
+       kpzn=0.45/Kp_Gain
+       kizn=kpzn/()
+
+
+    elif(typePID=="P" or typePID=="p" ):
+        kizn,kdzn=0,0
+        kiiae,kdiae=0,0
+        kpzn=Kp_Gain*0.5
     else:
         kpzn,kizn,kdzn=0,0,0
         kpiae,kiiae,kdiae=0,0,0
@@ -82,6 +90,7 @@ def system_control(Kp_Gain,Tau,Tetha,T_muestreo,typePID):
     controlIAE=[kpiae,kiiae,kdiae]
     return controlZn,controlIAE
 #valores del modelo termico que se pueden modificar dependiendo del pwm estos valores pueden cambiar.
+
 cap_cal = 650     #Capacidead Calorica [J/K]   ayuda a la curva lo que se refiere al Tau
 alpha = 0.018     #Factor del calentador        ayuda a la ganancia pero afecta mucho más 
 cof_tra_cal = 5.5  #Coeficiente de transferencia de calor por convección [W/m²K]  # este ayuda a la ganancia 
@@ -90,6 +99,7 @@ cof_tra_cal = 5.5  #Coeficiente de transferencia de calor por convección [W/m²
 
 #path_document = 'data\\DatosGrafica_AdquirirQ1_20260525_113127.xlsx' #100%
 path_document = 'data\\DatosGrafica_AdquirirQ1_20260530_195139.xlsx' #50%
+#path_document = 'data\DatosGrafica_AdquirirQ1_20260827_103513.xlsx' #50% estabilizado en 96.5 
 #path_document = 'data\\DatosGrafica_AdquirirQ1_20260826_144802.xlsx' #60%
 #path_document ='data\\DatosGrafica_AdquirirQ1_20260826_170243.xlsx'#40%
 
@@ -117,7 +127,8 @@ Gs_Excel_DeathTime=Gs_Excel*Gs_timeDeath_Excel
 
 #modelo a Codigo
 dyt,dxt,dt,e=recort_signal(temperatura1,pwm,tiempo,pwm_trabajo)
-print(f"temperatura final {dyt[-1]}")
+#print(f"temperatura final {dyt[-1]}")
+
 #paramaetros de la funcion de transferencia FOPDT y del modelo termico
 parametros_fopdt = funcion_fopdt_planta(dyt, e[0][0],dt)
 parametros_termicos= funcion_modelo_termico(cap_cal, alpha, cof_tra_cal, dyt[-1])
@@ -163,14 +174,28 @@ muestreo=5
 #controlzn,controliae=system_control(Kp_Excel,Tau_Excel,Tetha_Excel,muestreo,"PID") #parametros de control excel
 controlzn,controliae=system_control(parametros_fopdt[0],parametros_fopdt[1],parametros_fopdt[2],muestreo,"PID") #parametros de control FOPDT
 #controlzn,controliae=system_control(parametros_termicos[0],parametros_termicos[1],parametros_fopdt[2],muestreo,"PID") #parametros de control modelo fisico
-
-
+#'''
+#PID
 Gscontrolzn=co.tf([controlzn[2],controlzn[0],controlzn[1]],[1,0])
 Gscontroliae=co.tf([controliae[2],controliae[0],controliae[1]],[1,0])
 Gscontrolempirico=co.tf([0.3,3,0.02],[1,0])
+#'''
+'''
+#PI
+Gscontrolzn=co.tf([controlzn[0],controlzn[1]],[1,0])
+Gscontroliae=co.tf([controliae[0],controliae[1]],[1,0])
+Gscontrolempirico=co.tf([0.3,3,0.02],[1,0])
+'''
+'''
+#P
+Gscontrolzn=controlzn[0]
+Gscontroliae=controliae[0]
+Gscontrolempirico=co.tf([0.3,3,0.02],[1,0])
+'''
 
-#Gs_control=Gs_Excel
-Gs_control=Gs_FOPDT
+#planta prueba control
+Gs_control=Gs_Excel
+#Gs_control=Gs_FOPDT
 #Gs_control=Gs_termico
 
 GsFeedbackzn=co.feedback(Gs_control*Gscontrolzn,1,sign=-1)
