@@ -171,8 +171,8 @@ print(f"FOPDT:      {parametros_fopdt[2]*0.2:.2f}< T <{parametros_fopdt[2]*0.6:.
 #definimos un tiempo de muestreo de 5 segundos
 muestreo=5
 
-#controlzn,controliae=system_control(Kp_Excel,Tau_Excel,Tetha_Excel,muestreo,"PID") #parametros de control excel
-controlzn,controliae=system_control(parametros_fopdt[0],parametros_fopdt[1],parametros_fopdt[2],muestreo,"PID") #parametros de control FOPDT
+controlzn,controliae=system_control(Kp_Excel,Tau_Excel,Tetha_Excel,muestreo,"PID") #parametros de control excel
+#controlzn,controliae=system_control(parametros_fopdt[0],parametros_fopdt[1],parametros_fopdt[2],muestreo,"PID") #parametros de control FOPDT
 #controlzn,controliae=system_control(parametros_termicos[0],parametros_termicos[1],parametros_fopdt[2],muestreo,"PID") #parametros de control modelo fisico
 #'''
 #PID
@@ -194,8 +194,8 @@ Gscontrolempirico=co.tf([0.3,3,0.02],[1,0])
 '''
 
 #planta prueba control
-Gs_control=Gs_Excel
-#Gs_control=Gs_FOPDT
+#Gs_control=Gs_Excel
+Gs_control=Gs_FOPDT
 #Gs_control=Gs_termico
 
 GsFeedbackzn=co.feedback(Gs_control*Gscontrolzn,1,sign=-1)
