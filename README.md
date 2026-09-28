@@ -1,58 +1,59 @@
 # ModelosBJT
 
-Este repositorio tiene como objetivo identificar y comparar modelos de la planta térmica de temperatura a partir de señales de entrada y salida. El análisis se centra en la estimación de parámetros físicos y en la identificación de modelos tipo primer orden más tiempo muerto (FOPDT), con la finalidad de apoyar la validación y el diseño de estrategias de control.
+Este repositorio tiene como objetivo identificar y comparar modelos de la planta termica de temperatura a partir de senales de entrada y salida. El analisis se centra en la estimacion de parametros fisicos y en la identificacion de modelos tipo primer orden mas tiempo muerto (FOPDT), con la finalidad de apoyar la validacion y el diseno de estrategias de control.
 
 ## Objetivo del proyecto
 
 - Procesar datos experimentales de temperatura y PWM.
-- Detectar el segmento útil de un escalón de entrada.
-- Identificar parámetros de los modelos térmicos.
-- Comparar un modelo físico con un modelo empírico basado en FOPDT.
-- Visualizar la respuesta del sistema para validar la aproximación.
+- Detectar el segmento util de un escalon de entrada.
+- Identificar parametros de los modelos termicos.
+- Comparar un modelo fisico con un modelo empirico basado en FOPDT.
+- Visualizar la respuesta del sistema para validar la aproximacion.
 
 ## Estructura del repositorio
 
-- `recomedados/FOPDTplantasinIA.py`: script principal para analizar la respuesta del sistema con base en FOPDT.
-- `modelosCalculo/comparacionModelos.py`: comparación entre modelos físico y identificado.
-- `modelosCalculo/modeloTermicoIA.py`: enfoque de identificación térmica con ajuste y validación.
+- `recomedados/FOPDTplantasinIA_optimizado.py`: script principal optimizado para analizar la respuesta del sistema con base en FOPDT. Incluye seleccion interactiva de archivos.
+- `recomedados/FOPDTplantasinIA.py`: script original para analizar la respuesta del sistema.
+- `modelosCalculo/comparacionModelos.py`: comparacion entre modelos fisico y identificado.
+- `modelosCalculo/modeloTermicoIA.py`: enfoque de identificacion termica con ajuste y validacion.
 - `data/`: archivos Excel usados como entrada experimental.
 
 ## Recomendado
 
 Para el uso principal del proyecto, se recomienda seguir este flujo:
 
-1. Usar `recomedados/FOPDTplantasinIA.py` como referencia para la identificación rápida del comportamiento principal del sistema con FOPDT.
-2. Validar y comparar resultados con `modelosCalculo/comparacionModelos.py` para contrastar el modelo identificado frente a un modelo térmico físico.
-3. Usar `modelosCalculo/modeloTermicoIA.py` como base de análisis y comparación, especialmente cuando se quiera ajustar parámetros físicos o probar diferentes configuraciones.
-4. Verificar la calidad del ajuste con métricas como error cuadrático medio (RMSE), tiempo de asentamiento y correlación con la respuesta real.
+1. Usar `recomedados/FOPDTplantasinIA_optimizado.py` para analizar de manera interactiva multiples archivos de datos, seleccionando graficamente el Excel objetivo.
+2. Validar y comparar resultados con `modelosCalculo/comparacionModelos.py` para contrastar el modelo identificado frente a un modelo termico fisico.
+3. Usar `modelosCalculo/modeloTermicoIA.py` como base de analisis y comparacion, especialmente cuando se quiera ajustar parametros fisicos o probar diferentes configuraciones.
+4. Verificar la calidad del ajuste con metricas como error cuadratico medio (RMSE), tiempo de asentamiento y correlacion con la respuesta real.
 
 ## Flujo sugerido de trabajo
 
-1. Preparar o ajustar el archivo de Excel con las señales de tiempo, temperatura y PWM.
-2. Ejecutar el script recomendado según la etapa del estudio.
-3. Revisar la respuesta del sistema en la gráfica generada.
-4. Ajustar parámetros de potencia, capacidad calorífica o coeficientes térmicos si el modelo no representa bien el proceso.
-5. Guardar los resultados para comparación entre distintas condiciones de operación.
+1. Preparar o ajustar el archivo de Excel con las senales de tiempo, temperatura y PWM dentro de la carpeta `data/`.
+2. Ejecutar el script recomendado segun la etapa del estudio.
+3. Seleccionar interactivamente el archivo desde la consola si utiliza la version optimizada.
+4. Revisar la respuesta del sistema en la grafica (agrupada en un solo layout cuadruple).
+5. Ajustar parametros de potencia, capacidad calorifica o coeficientes termicos si el modelo no representa bien el proceso.
+6. Guardar los resultados para comparacion entre distintas condiciones de operacion.
 
-## Recomendación práctica
+## Recomendacion practica
 
-El modelo más apropiado para el análisis inicial y para la automatización del proceso es el enfoque FOPDT, porque ofrece un balance entre simplicidad, interpretación física y facilidad de ajuste con datos experimentales. El modelo físico puede servir como referencia teórica, pero la identificación experimental suele ser la mejor base para control y validación en este tipo de plantas térmicas.
+El modelo mas apropiado para el analisis inicial y para la automatizacion del proceso es el enfoque FOPDT, porque ofrece un balance entre simplicidad, interpretacion fisica y facilidad de ajuste con datos experimentales. El modelo fisico puede servir como referencia teorica, pero la identificacion experimental suele ser la mejor base para control y validacion en este tipo de plantas termicas.
 
-## Cómo ejecutar
+## Como ejecutar
 
-Desde la raíz del repositorio:
+Desde la raiz del repositorio:
 
 ```bash
-python recomedados/FOPDTplantasinIA.py
+python recomedados/FOPDTplantasinIA_optimizado.py
 ```
 
-También pueden ejecutarse los scripts de comparación en la carpeta `modelosCalculo/` para estudiar distintos enfoques.
+Tambien pueden ejecutarse los scripts de comparacion en la carpeta `modelosCalculo/` para estudiar distintos enfoques.
 
 ## Siguientes mejoras sugeridas
 
-- Mejorar la detección automática del escalón.
-- Agregar validación con métricas de error.
-- Parametrizar más valores físicos en un archivo de configuración.
-- Guardar gráficas y resultados en carpetas de salida.
-- Separar lógica de carga, identificación y visualización en módulos.
-
+- Mejorar la deteccion automatica del escalon.
+- Agregar validacion con metricas de error.
+- Parametrizar mas valores fisicos en un archivo de configuracion.
+- Guardar graficas y resultados en carpetas de salida.
+- Separar logica de carga, identificacion y visualizacion en modulos.
