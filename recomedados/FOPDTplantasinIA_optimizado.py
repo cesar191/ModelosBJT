@@ -6,6 +6,13 @@ import matplotlib.pyplot as plt
 import control as co
 from collections import Counter
 
+def limpiar_pantalla():
+    # Si es Windows ('nt')
+    if os.name == 'nt':
+        os.system('cls')
+    # Si es Linux o macOS
+    else:
+        os.system('clear')
 def seleccionar_archivo_datos(carpeta_datos="data"):
     """Lista los archivos Excel en la carpeta y permite al usuario elegir uno."""
     archivos = glob.glob(os.path.join(carpeta_datos, "*.xlsx"))
@@ -28,7 +35,9 @@ def seleccionar_archivo_datos(carpeta_datos="data"):
 
 def funcion_fopdt_planta(dyt, pwm_trabajo, dt):
     """Calcula los parametros FOPDT de la planta (metodo del 63.2%)."""
+    #print(f"promedio: {np.mean(dyt):.2f}, max: ({np.max(dyt):.2f},{dyt[-1]}), min: ({np.min(dyt):.2f},{dyt[0]}7)")
     delta_y = dyt[-1] - dyt[0]
+    #delta_y = np.mean(dyt) - dyt[0]
     Kp_gain = delta_y / pwm_trabajo
     
     # Tiempo al 63.2%
@@ -46,7 +55,8 @@ def funcion_fopdt_planta(dyt, pwm_trabajo, dt):
     return [Kp_gain, tau_opt, theta_opt]
 
 def funcion_fopdt2_planta(dyt, pwm_trabajo, dt):
-    """Calcula los parametros FOPDT de la planta usando el metodo de 2 puntos (35.3% y 85.3%)."""
+    """Calcula los parametros FOPDT de la planta usando el metodo de 2 puntos 3(35.3% y 85.3%)."""
+   
     delta_y = dyt[-1] - dyt[0]
     Kp_gain = delta_y / pwm_trabajo
     
@@ -54,13 +64,15 @@ def funcion_fopdt2_planta(dyt, pwm_trabajo, dt):
     index_85 = np.argmax(dyt >= temp_85)
     tiempo_85 = dt[index_85] - dt[0]
     
+    
     temp_35 = 0.353 * delta_y
     index_35 = np.argmax(dyt >= temp_35)
     tiempo_35 = dt[index_35] - dt[0]
-    
-    tau_opt = 0.675 * (tiempo_85 - tiempo_35)
-    theta_opt = abs(1.294 * tiempo_35 - 0.294 * tiempo_85)
 
+    tau_opt = 0.675 * (tiempo_85 - tiempo_35)
+    theta_opt = abs(1.294 * tiempo_35 - 0.294 * tiempo_85) -dt[0]
+    print(f"Tiempo 35.3%: {tiempo_35:.2f}s, Tiempo 85.3%: {tiempo_85:.2f}s")
+    print(f"Temperatura 35.3%: {temp_35:.2f} C, Temperatura 85.3%: {temp_85:.2f} C")
     return [Kp_gain, tau_opt, theta_opt]
 
 def funcion_modelo_termico(cap_cal, alpha, cof_tra_cal, t_final):
@@ -135,6 +147,7 @@ def system_control(Kp_Gain, Tau, Tetha, T_muestreo, typePID):
 
 def main():
     # 1. Seleccion de archivo
+    limpiar_pantalla()
     path_document = seleccionar_archivo_datos()
     if not path_document:
         return
@@ -186,9 +199,10 @@ def main():
     # 7. Simulacion
     t_sim = np.linspace(dt[0], dt[-1], len(dt))
     t1, y1 = co.forced_response(Gs_FOPDT, t_sim, amplitud_escalon)
-    t2, y2 = co.forced_response(Gs_termico, t_sim, amplitud_escalon)
-    t3, y3 = co.forced_response(Gs_Excel_DeathTime, t_sim, amplitud_escalon)
-    
+    t2, y2 = co.forced_response(Gs_FOPDT2, t_sim, amplitud_escalon)
+    t3, y3 = co.forced_response(Gs_termico, t_sim, amplitud_escalon)
+    t4, y4 = co.forced_response(Gs_Excel_DeathTime, t_sim, amplitud_escalon)
+
     # Analisis del tiempo de muestreo
     print("\n--- Metodo Tau ---")
     for nombre, tau in [("Excel", Tau_Excel), ("Termico", p_termicos[1]), ("FOPDT", p_fopdt[1]), ("FOPDT2", p_fopdt2[1])]:
@@ -199,7 +213,8 @@ def main():
         print(f"{nombre}: {tetha*0.2:.2f} < T < {tetha*0.6:.2f}")
 
     # 8. Control
-    muestreo = 1
+    
+    muestreo = int(input(f"Seleccione el tiempo de muestreo (s): "))
     tipoControl = "PID"
     
     ctrl_zn_FOPDT, ctrl_iae_FOPDT = system_control(p_fopdt[0], p_fopdt[1], p_fopdt[2], muestreo, tipoControl)
@@ -242,9 +257,10 @@ def main():
     # Modelos
     axs[0, 1].plot(dt, dxt, label='PWM', color='black', alpha=0.3)
     axs[0, 1].plot(dt, dyt, label='Real (ΔT)', color='red')
-    axs[0, 1].plot(t1, y1, label='FOPDT', color='orange')
-    axs[0, 1].plot(t2, y2, label='Mod. Termico', color='blue')
-    axs[0, 1].plot(t3, y3, label='FOPDT Excel', color='darkgreen')
+    axs[0, 1].plot(t1, y1, label='FOPDT 63.2%', color='orange')
+    axs[0, 1].plot(t2, y2, label='FOPDT 2 Puntos', color='purple')
+    axs[0, 1].plot(t3, y3, label='Mod. Termico', color='blue')
+    axs[0, 1].plot(t4, y4, label='FOPDT Excel', color='darkgreen')
     axs[0, 1].set_title(f'Respuestas a {amplitud_escalon}% PWM')
     axs[0, 1].legend()
     axs[0, 1].grid()
