@@ -15,7 +15,7 @@ Este repositorio tiene como objetivo identificar y comparar modelos de la planta
 - `recomedados/FOPDTplantasinIA_optimizado.py`: script principal optimizado para analizar la respuesta del sistema con base en FOPDT. Incluye seleccion interactiva de archivos.
 - `recomedados/FOPDTplantasinIA.py`: script original para analizar la respuesta del sistema.
 - `modelosCalculo/comparacionModelos.py`: comparacion entre modelos fisico y identificado.
-- `modelosCalculo/modeloTermicoIA.py`: enfoque de identificacion termica con ajuste y validacion.
+- `modelosCalculo/modeloTermicoIA.py`: enfoque de identificacion termica con ajuste y validacion (con IA).
 - `data/`: archivos Excel usados como entrada experimental.
 
 ## Recomendado
