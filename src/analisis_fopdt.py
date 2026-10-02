@@ -7,7 +7,7 @@ import control as co
 from collections import Counter
 
 def seleccionar_archivo_datos(carpeta_datos="data"):
-    """Lista los archivos Excel en la carpeta y permite al usuario elegir uno."""
+
     archivos = glob.glob(os.path.join(carpeta_datos, "*.xlsx"))
     if not archivos:
         print(f"No se encontraron archivos Excel en la carpeta '{carpeta_datos}'.")
@@ -27,16 +27,13 @@ def seleccionar_archivo_datos(carpeta_datos="data"):
             print("Por favor ingrese un numero valido.")
 
 def funcion_fopdt_planta(dyt, pwm_trabajo, dt):
-    """Calcula los parametros FOPDT de la planta (metodo del 63.2%)."""
     delta_y = dyt[-1] - dyt[0]
     Kp_gain = delta_y / pwm_trabajo
     
-    # Tiempo al 63.2%
     temp_63 = 0.632 * delta_y
     index_63 = np.argmax(dyt >= temp_63)
     tiempo_63 = dt[index_63] - dt[0]
     
-    # Tiempo de inicio (cuando la temperatura sube mas de 0.5 grados)
     index_inicio = np.argmax(dyt >= 0.5)
     time_star = dt[index_inicio] - dt[0] 
     
@@ -46,7 +43,7 @@ def funcion_fopdt_planta(dyt, pwm_trabajo, dt):
     return [Kp_gain, tau_opt, theta_opt]
 
 def funcion_fopdt2_planta(dyt, pwm_trabajo, dt):
-    """Calcula los parametros FOPDT de la planta usando el metodo de 2 puntos (35.3% y 85.3%)."""
+    
     delta_y = dyt[-1] - dyt[0]
     Kp_gain = delta_y / pwm_trabajo
     
@@ -64,7 +61,7 @@ def funcion_fopdt2_planta(dyt, pwm_trabajo, dt):
     return [Kp_gain, tau_opt, theta_opt]
 
 def funcion_modelo_termico(cap_cal, alpha, cof_tra_cal, t_final):
-    """Calcula el modelo termico basado en parametros fisicos."""
+    
     sigma = 5.67e-8         # Constante de Stefan-Boltzmann (fijo)
     eps = 0.9               # Emisividad del material (fijo)
     area = 1.2e-3           # Area efectiva del disipador [m2] (fijo)
@@ -77,7 +74,6 @@ def funcion_modelo_termico(cap_cal, alpha, cof_tra_cal, t_final):
     return [Kp_gain, tau]
 
 def recortar_senal(y, u, t, value_recort):
-    """Recorta la senal y extrae la parte activa del escalon."""
     dyt, dxt, dt = [], [], []
     escalon = [[], []]  
     
@@ -99,7 +95,7 @@ def recortar_senal(y, u, t, value_recort):
     return dyt, dxt, dt, escalon
 
 def system_control(Kp_Gain, Tau, Tetha, T_muestreo, typePID):
-    """Calcula los parametros del controlador basado en Ziegler-Nichols e IAE."""
+    
     T_Control = Tetha + (T_muestreo / 2)
     resolucion = 4
     typePID = typePID.upper()
@@ -158,9 +154,9 @@ def main():
     amplitud_escalon = e[0][0]
     
     # 4. Parametros Fisicos (Configurables)
-    cap_cal = 650     
-    alpha = 0.014     
-    cof_tra_cal = 5  
+    cap_cal = 650 # capacidad calorica [J/°C]    
+    alpha = 0.014 # coeficiente de conveccion [W/m²°C]    
+    cof_tra_cal = 5  # coeficiente de transferencia de calor [W/m°C] 
     
     # 5. Obtencion de Parametros de Modelos
     p_fopdt = funcion_fopdt_planta(dyt, amplitud_escalon, dt)
@@ -177,10 +173,10 @@ def main():
 
     # Imprimir resultados
     print("\n--- Funciones de transferencia ---")
-    print(f"FOPDT:       ({p_fopdt[0]:.2f}) / ({p_fopdt[1]:.2f}s+1) * e^(-{p_fopdt[2]:.2f}s)")
-    print(f"FOPDT2:      ({p_fopdt2[0]:.2f}) / ({p_fopdt2[1]:.2f}s+1) * e^(-{p_fopdt2[2]:.2f}s)")
-    print(f"Mod. Termico:({p_termicos[0]:.2f}) / ({p_termicos[1]:.2f}s+1) * e^(-{p_fopdt[2]:.2f}s)")
-    print(f"FOPDT Excel: ({Kp_Excel:.2f}) / ({Tau_Excel:.2f}s+1) * e^(-{Tetha_Excel:.2f}s)")
+    print(f"FOPDT metodo 1:       ({p_fopdt[0]:.2f}) / ({p_fopdt[1]:.2f}s+1) * e^(-{p_fopdt[2]:.2f}s)")
+    print(f"FOPDT metodo 2:       ({p_fopdt2[0]:.2f}) / ({p_fopdt2[1]:.2f}s+1) * e^(-{p_fopdt2[2]:.2f}s)")
+    print(f"Mod. Termico:         ({p_termicos[0]:.2f}) / ({p_termicos[1]:.2f}s+1) * e^(-{p_fopdt[2]:.2f}s)")
+    print(f"FOPDT obtenido Excel: ({Kp_Excel:.2f}) / ({Tau_Excel:.2f}s+1) * e^(-{Tetha_Excel:.2f}s)")
 
     # 7. Simulacion
     t_sim = np.linspace(dt[0], dt[-1], len(dt))
