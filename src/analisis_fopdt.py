@@ -194,7 +194,7 @@ def main():
         print(f"{nombre}: {tetha*0.2:.2f} < T < {tetha*0.6:.2f}")
 
     # 8. Control
-    muestreo = 5
+    muestreo = int(input("\nIngrese el tiempo de muestreo [s]: "))
     tipoControl = "PID"
     
     ctrl_zn_FOPDT, ctrl_iae_FOPDT = system_control(p_fopdt[0], p_fopdt[1], p_fopdt[2], muestreo, tipoControl)
@@ -212,8 +212,8 @@ def main():
 
     print(f"\n--- Parametros PID (FOPDT) [T={muestreo}s] ---")
     print(f"Empirico: KP=3.0000, KI=0.0200, KD=0.3000")
-    print(f"ZN:       KP={ctrl_zn_FOPDT[0]:.4f}, KI={ctrl_zn_FOPDT[1]:.4f}, KD={ctrl_zn_FOPDT[2]:.4f}")
-    print(f"IAE:      KP={ctrl_iae_FOPDT[0]:.4f}, KI={ctrl_iae_FOPDT[1]:.4f}, KD={ctrl_iae_FOPDT[2]:.4f}")
+    print(f"ZN:       KP= {ctrl_zn_FOPDT[0]:.4f}, KI= {ctrl_zn_FOPDT[1]:.4f}, KD= {ctrl_zn_FOPDT[2]:.4f}")
+    print(f"IAE:      KP= {ctrl_iae_FOPDT[0]:.4f}, KI= {ctrl_iae_FOPDT[1]:.4f}, KD= {ctrl_iae_FOPDT[2]:.4f}")
 
     # 9. Graficas
     fig, axs = plt.subplots(2, 2, figsize=(12, 8))
