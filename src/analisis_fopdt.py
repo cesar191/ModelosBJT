@@ -211,7 +211,7 @@ def main():
     tc3, yc3 = co.step_response(Gs_fb_emp, t_sim)
 
     print(f"\n--- Parametros PID (FOPDT) [T={muestreo}s] ---")
-    print(f"Empirico: KP=3.0000, KI=0.0200, KD=0.3000")
+    print(f"Empirico: KP= 3.0000, KI= 0.0200, KD= 0.3000")
     print(f"ZN:       KP= {ctrl_zn_FOPDT[0]:.4f}, KI= {ctrl_zn_FOPDT[1]:.4f}, KD= {ctrl_zn_FOPDT[2]:.4f}")
     print(f"IAE:      KP= {ctrl_iae_FOPDT[0]:.4f}, KI= {ctrl_iae_FOPDT[1]:.4f}, KD= {ctrl_iae_FOPDT[2]:.4f}")
 
