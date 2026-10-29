@@ -10,11 +10,9 @@ import matplotlib.pyplot as plt
 import control as co
 from collections import Counter
 
-def limpiar_consola():
-    os.system('cls' if os.name == 'nt' else 'clear')
-
 def seleccionar_archivo_datos(carpeta_datos="data"):
-    limpiar_consola()
+    os.system('cls' if os.name == 'nt' else 'clear')
+    
     archivos = glob.glob(os.path.join(carpeta_datos, "*.xlsx"))
     if not archivos:
         print(f"No se encontraron archivos Excel en la carpeta '{carpeta_datos}'.")
@@ -148,20 +146,23 @@ def limpiar_numero(x, dec=2):
         return int(r) if r.is_integer() else r
     return x
 
-def exportar_analisis_excel(amplitud_escalon, dyt, temp_ini, temp_fin,
+def exportar_analisis_excel(amplitud_escalon, dyt,dxt,dt, temp_ini, temp_fin,
                             p_fopdt, p_fopdt2, p_termicos,
                             kp_ex, tau_ex, theta_ex,
                             muestreo, ctrl_zn, ctrl_iae, ctrl_emp,
                             img_buf=None,
+                            archivo_analizar="Adquirir.xlsx",
                             carpeta_salida=os.path.join("AnalisisDatos", "Fopdt")):
     os.makedirs(carpeta_salida, exist_ok=True)
-    fecha_actual = datetime.now().strftime("%Y%m%d_%H%M%S")
-    nombre_archivo = f"AnalisisFopdt_{fecha_actual}.xlsx"
+    nombre_archivo = f"AnalisisFopdt_{archivo_analizar}"
     ruta_archivo = os.path.join(carpeta_salida, nombre_archivo)
 
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "AnalisisFOPDT"
+    ws1=wb.create_sheet(title="SignalRecort")
+
+    
 
     tiene_excel = not (np.isnan(kp_ex) or np.isnan(tau_ex) or np.isnan(theta_ex))
 
@@ -169,7 +170,7 @@ def exportar_analisis_excel(amplitud_escalon, dyt, temp_ini, temp_fin,
     filas_datos = [
         ("planta", "Planta Q1"),
         ("Escalon PWM [%]", amplitud_escalon),
-        ("Temp Inicial [°C]", temp_ini),
+        ("Temp Ambiente [°C]", temp_ini),
         ("Temp Final [°C]", temp_fin),
         ("Delta Temp ΔT [°C]", dyt[-1] - dyt[0]),
         ("Tiempo Muestreo Ts [s]", muestreo),
@@ -212,7 +213,7 @@ def exportar_analisis_excel(amplitud_escalon, dyt, temp_ini, temp_fin,
             ws.cell(row=r_idx, column=2, value=v)
 
     # Tabla de parametros PID en columnas E:I
-    pid_headers = ["Sintonizacion", "Kp", "Ki", "Kd", "Ts [s]"]
+    pid_headers = ["Control", "Kp", "Ki", "Kd", "Ts [s]"]
     for c_idx, h in enumerate(pid_headers, start=5):
         ws.cell(row=1, column=c_idx, value=h)
 
@@ -226,7 +227,13 @@ def exportar_analisis_excel(amplitud_escalon, dyt, temp_ini, temp_fin,
         for c_idx, val in enumerate(fila, start=5):
             v = limpiar_numero(val, dec=4) if isinstance(val, (int, float, np.floating, np.integer)) else val
             ws.cell(row=r_offset, column=c_idx, value=v)
-
+    signal_headers = ["Tiempo", "Temperatura", "PWM"]
+    for c_idx in range(0,len(signal_headers)):
+        ws1.cell(row=1, column=c_idx+1, value=signal_headers[c_idx])
+    for i_row in range(0,len(dyt)):
+        ws1.cell(row=i_row+2,column=1,value=dt[i_row])
+        ws1.cell(row=i_row+2,column=2,value=dyt[i_row])
+        ws1.cell(row=i_row+2,column=3,value=dxt[i_row])
     # Anchos de columna
     ws.column_dimensions["A"].width = 28
     ws.column_dimensions["B"].width = 16
@@ -244,7 +251,7 @@ def exportar_analisis_excel(amplitud_escalon, dyt, temp_ini, temp_fin,
         img = Image(img_buf)
         img.width = 720
         img.height = 480
-        ws.add_image(img, "E6")
+        ws.add_image(img, "k1")
 
     wb.save(ruta_archivo)
     return ruta_archivo
@@ -415,11 +422,13 @@ def main():
     temp_ini = temperatura1[0]
     temp_fin = temp_ini + dyt[-1]
     ruta_excel = exportar_analisis_excel(
-        amplitud_escalon, dyt, temp_ini, temp_fin,
+        amplitud_escalon, 
+        dyt, dxt,dt,
+        temp_ini, temp_fin,
         p_fopdt, p_fopdt2, p_termicos,
         Kp_Excel, Tau_Excel, Tetha_Excel,
         muestreo, ctrl_zn_FOPDT, ctrl_iae_FOPDT, ctrl_emp,
-        img_buf=img_buf
+        img_buf=img_buf,archivo_analizar=os.path.basename(path_document)
     )
     print(f"Reporte Excel generado en: {ruta_excel}")
 

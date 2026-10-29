@@ -8,11 +8,11 @@ import openpyxl
 from openpyxl.drawing.image import Image
 import matplotlib.pyplot as plt
 
-def limpiar_consola():
-    os.system('cls' if os.name == 'nt' else 'clear')
 
 def seleccionar_archivo_datos(carpeta_datos="dataControl"):
-    limpiar_consola()
+    
+    os.system('cls' if os.name == 'nt' else 'clear')
+
     archivos = glob.glob(os.path.join(carpeta_datos, "*.xlsx"))
     if not archivos:
         print(f"No se encontraron archivos Excel en la carpeta '{carpeta_datos}'.")
@@ -141,8 +141,8 @@ def calcular_indices_y_metricas(tiempo, pv, sp, pwm, corriente=None, nombre_plan
     idx_max = np.argmax(pv_seg)
     t_peak = t_seg[idx_max]
     sobreimpulso_abs = max(0.0, y_max - sp_final)
-    sobreimpulso_pct = (sobreimpulso_abs / delta_sp) * 100.0 if delta_sp != 0 else 0.0
-
+#    sobreimpulso_pct = (sobreimpulso_abs / delta_sp) * 100.0 if delta_sp != 0 else 0.0
+    sobreimpulso_pct = (sobreimpulso_abs / sp_final) * 100.0 if delta_sp != 0 else 0.0
     # Tiempo de subida tr (10% a 90%)
     val_10 = y_inicial + 0.10 * delta_sp
     val_90 = y_inicial + 0.90 * delta_sp
@@ -318,10 +318,12 @@ def imprimir_resumen_control(m1, m2=None, df_params=None):
             print(f"{'IAE Perturbacion':<28} | {p1['iae_pert']:<10.2f}")
             print("-" * len(hdr_p))
 
-def exportar_analisis_excel(m1, m2=None, df_params=None, img_buf=None, carpeta_salida=os.path.join("AnalisisDatos", "Control")):
+def exportar_analisis_excel(m1, m2=None, df_params=None, img_buf=None,
+                            archivo_analizar="Control.xlsx" ,
+                            carpeta_salida=os.path.join("AnalisisDatos", "Control")):
     os.makedirs(carpeta_salida, exist_ok=True)
-    fecha_actual = datetime.now().strftime("%Y%m%d_%H%M%S")
-    nombre_archivo = f"AnalisisControl_{fecha_actual}.xlsx"
+    #fecha_actual = datetime.now().strftime("%Y%m%d_%H%M%S")
+    nombre_archivo = f"AnalisisControl_{archivo_analizar}.xlsx"
     ruta_archivo = os.path.join(carpeta_salida, nombre_archivo)
 
     wb = openpyxl.Workbook()
@@ -550,7 +552,9 @@ def main():
     fig, img_buf = crear_figura_control(tiempo, pv1, sp1, pwm1, corr1, pv2, sp2, pwm2, corr2, m1, m2)
 
     # 6. Exportacion a Excel con imagen incrustada
-    ruta_excel = exportar_analisis_excel(m1, m2, df_params, img_buf=img_buf)
+    ruta_excel = exportar_analisis_excel(m1, m2, df_params, 
+                                         img_buf=img_buf, 
+                                         archivo_analizar=os.path.basename(path_documento))
     print(f"Reporte Excel generado en: {ruta_excel}")
 
     # 7. Visualizacion interactiva
