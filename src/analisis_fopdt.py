@@ -12,7 +12,7 @@ from collections import Counter
 
 def seleccionar_archivo_datos(carpeta_datos="data"):
     os.system('cls' if os.name == 'nt' else 'clear')
-    
+
     archivos = glob.glob(os.path.join(carpeta_datos, "*.xlsx"))
     if not archivos:
         print(f"No se encontraron archivos Excel en la carpeta '{carpeta_datos}'.")
@@ -99,7 +99,7 @@ def recortar_senal(y, u, t, value_recort):
 
 def system_control(Kp_Gain, Tau, Tetha, T_muestreo, typePID):
     T_Control = Tetha + (T_muestreo / 2)
-    resolucion = 4
+    resolucion = 1
     typePID = typePID.upper()
     
     kpzn, kizn, kdzn = 0, 0, 0
