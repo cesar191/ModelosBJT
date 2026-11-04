@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import control as co
 from collections import Counter
 
-def seleccionar_archivo_datos(carpeta_datos="data"):
+def seleccionar_archivo_datos(carpeta_datos="dataIdentificacion"):
     os.system('cls' if os.name == 'nt' else 'clear')
 
     archivos = glob.glob(os.path.join(carpeta_datos, "*.xlsx"))
@@ -310,7 +310,7 @@ def crear_figura_fopdt(tiempo, temperatura1, pwm, dt, dyt, dxt,
 
 def main():
     # 1. Seleccion de archivo
-    path_document = seleccionar_archivo_datos("data")
+    path_document = seleccionar_archivo_datos("dataIdentificacion")
     if not path_document:
         return
     print(f"\nProcesando archivo: {os.path.basename(path_document)}")

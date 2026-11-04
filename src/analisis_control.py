@@ -323,7 +323,7 @@ def exportar_analisis_excel(m1, m2=None, df_params=None, img_buf=None,
                             carpeta_salida=os.path.join("AnalisisDatos", "Control")):
     os.makedirs(carpeta_salida, exist_ok=True)
     #fecha_actual = datetime.now().strftime("%Y%m%d_%H%M%S")
-    nombre_archivo = f"AnalisisControl_{archivo_analizar}.xlsx"
+    nombre_archivo = f"AnalisisControl_{archivo_analizar}"
     ruta_archivo = os.path.join(carpeta_salida, nombre_archivo)
 
     wb = openpyxl.Workbook()
