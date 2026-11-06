@@ -1,55 +1,94 @@
-# Plataforma de Identificación y Control Térmico en Transistores BJT
+# 🌡️ ModelosBJT — Plataforma de Identificación y Control Térmico en Transistores BJT
 
-Bienvenido al repositorio **ModelosBJT**. Este proyecto de tesis e investigación está diseñado para que estudiantes, ingenieros e investigadores puedan **identificar, comparar y validar estrategias de control automático** sobre una planta térmica experimental basada en transistores de potencia BJT.
+> Proyecto académico e investigativo para **identificar, modelar y validar estrategias de control automático** sobre una planta térmica experimental construida con transistores de potencia BJT ($Q_1$ y $Q_2$).
 
 ---
 
-## 🎯 ¿De qué trata este proyecto?
+## 📋 Tabla de Contenidos
 
-En electrónica de potencia y sistemas embebidos, la disipación térmica y el control preciso de temperatura son fundamentales. En este sistema:
-1. **Actuador:** Uno o dos transistores BJT ($Q_1$ y $Q_2$) generan calor regulado mediante una señal PWM (0 a 100%).
-2. **Sensor:** Sensores de temperatura miden en tiempo real la respuesta térmica del sistema en grados Celsius (°C), junto con el consumo de corriente eléctrica en miliamperios (mA).
-3. **Objetivo:** 
-   - Estimar modelos matemáticos precisos de la planta a partir de datos experimentales en lazo abierto (**FOPDT** y **Modelo Físico**).
-   - Diseñar y sintonizar controladores PID (Ziegler-Nichols, IAE y Empírico).
-   - Evaluar cuantitativamente el desempeño del control en lazo cerrado y su capacidad de rechazar perturbaciones térmicas externas.
+1. [¿Qué es este proyecto?](#-qué-es-este-proyecto)
+2. [¿Cómo funciona el sistema físico?](#-cómo-funciona-el-sistema-físico)
+3. [Fundamentos Teóricos](#-fundamentos-teóricos)
+4. [Estructura del Repositorio](#-estructura-del-repositorio)
+5. [Instalación y Requisitos](#-instalación-y-requisitos)
+6. [Guía de Uso Paso a Paso](#️-guía-de-uso-paso-a-paso)
+7. [Formato de los Datos de Entrada](#-formato-de-los-datos-de-entrada)
+8. [Reportes Excel Generados](#-reportes-excel-generados)
+9. [Glosario para Estudiantes](#-glosario-para-estudiantes)
 
-```mermaid
-flowchart TD
-    A["Datos Experimentales en Excel\n(data / dataControl)"] --> B{"Tipo de Análisis"}
-    
-    B -->|"Lazo Abierto (Respuesta al Escalón)"| C["src/analisis_fopdt.py"]
-    B -->|"Validación Teórica"| D["src/comparacion_modelos.py"]
-    B -->|"Lazo Cerrado (PID Real)"| E["src/analisis_control.py"]
-    
-    C --> F["Modelos FOPDT + Sintonización PID\nReporte en AnalisisDatos/Fopdt"]
-    D --> G["Comparación Gráfica Teórica vs Real"]
-    E --> H["Métricas de Desempeño + Perturbaciones\nReporte en AnalisisDatos/Control"]
+---
+
+## 🎯 ¿Qué es este proyecto?
+
+Este repositorio reúne herramientas en Python para analizar **sistemas de control de temperatura** basados en transistores BJT calentados por corriente eléctrica. Permite:
+
+| Tarea | Herramienta | Resultado |
+| :--- | :---: | :--- |
+| Identificar el modelo matemático de la planta (lazo abierto) | `analisis_fopdt.py` | Parámetros FOPDT, ganancias PID calculadas |
+| Evaluar la respuesta de un controlador PID (lazo cerrado) | `analisis_control4.py` | Métricas de desempeño, gráficas y reporte Excel |
+| Contrastar modelo físico teórico vs. datos reales | `comparacion_modelos.py` | Gráfica comparativa superpuesta |
+
+**¿Para quién es?** Estudiantes de ingeniería electrónica y de control, investigadores y docentes que trabajen con plantas térmicas experimentales.
+
+---
+
+## 🔌 ¿Cómo funciona el sistema físico?
+
+```
+   ┌──────────────┐    PWM (0–100%)    ┌───────────────────────┐
+   │ Controlador  │ ─────────────────▶ │  Transistor BJT (Q1)  │ ──▶ Calor
+   │     PID      │                    │  Transistor BJT (Q2)  │ ──▶ Calor
+   │              │ ◀─────────────────  └───────────────────────┘
+   └──────────────┘  Temperatura (°C)          │
+                      Corriente (mA)    Sensor de temperatura
 ```
 
+- **Actuador:** El transistor BJT disipa potencia eléctrica como calor. La señal de control es un PWM entre 0% y 100%.
+- **Sensor:** Un termistor o sensor digital mide la temperatura en °C en tiempo real.
+- **Objetivo del control:** Que la temperatura llegue y se mantenga en el valor de referencia (*SetPoint*) lo más rápido y suavemente posible, incluso ante perturbaciones externas (como aplicar un enfriamiento forzado).
+
 ---
 
-## 📚 Fundamento Teórico Básico (Para Estudiantes)
+## 📚 Fundamentos Teóricos
 
-### 1. Modelo FOPDT (Primer Orden Más Tiempo Muerto)
-La mayoría de sistemas térmicos pueden representarse con gran exactitud mediante una función de transferencia de primer orden con retardo:
+### Modelo FOPDT — Primer Orden con Tiempo Muerto
 
-$$G(s) = \frac{K_p}{\tau s + 1} e^{-\theta s}$$
+La mayoría de sistemas térmicos simples se comportan como:
 
-* **$K_p$ (Ganancia estática):** Cuánto sube la temperatura por cada unidad de PWM ($\Delta T / \Delta PWM$).
-* **$\tau$ (Constante de tiempo):** Rapidez con la que reacciona el sistema (tiempo en alcanzar el 63.2% de su cambio total).
-* **$\theta$ (Tiempo muerto / Retardo):** Tiempo que tarda el sensor en percibir el calor desde que se aplicó el PWM.
+$$G(s) = \frac{K_p}{\tau s + 1} \cdot e^{-\theta s}$$
 
-### 2. Modelo Físico Térmico
-Basado en leyes de transferencia de calor por convección y radiación (Ley de Stefan-Boltzmann):
-* Relaciona la masa del transistor ($m$), el área del disipador ($A$), la capacidad calorífica ($C_p$) y coeficientes de convección ($\alpha$, $h$).
+| Parámetro | Símbolo | Significado físico |
+| :--- | :---: | :--- |
+| Ganancia estática | $K_p$ | °C de temperatura que sube por cada 1% de aumento en PWM |
+| Constante de tiempo | $\tau$ | Tiempo que tarda el sistema en alcanzar el 63.2% de su cambio total |
+| Tiempo muerto | $\theta$ | Retardo entre que se aplica el PWM y el sensor comienza a detectar cambio |
 
-### 3. Índices de Desempeño en Control
-Para comparar qué controlador es mejor, se calculan índices numéricos objetivos:
-* **$IAE$ (Integral del Error Absoluto):** $\int |e(t)| dt$. Mide el error total acumulado.
-* **$ISE$ (Integral del Error al Cuadrado):** $\int e(t)^2 dt$. Penaliza con mayor severidad los errores grandes iniciales.
-* **$ITAE$ (Integral del Error Ponderado en el Tiempo):** $\int t |e(t)| dt$. Penaliza los errores persistentes en estado estable.
-* **$TV(u)$ (Variación Total de Control):** Mide la suavidad de la señal PWM. Un valor bajo evita desgastar los actuadores.
+### Controlador PID
+
+$$u(t) = K_p \, e(t) + K_i \int e(t)\,dt + K_d \frac{de(t)}{dt}$$
+
+Donde $e(t) = SP - T(t)$ es el error entre la temperatura deseada y la medida.
+
+### Métricas de Desempeño del Control
+
+Una vez aplicado el controlador, se evalúa su calidad con estos indicadores:
+
+| Métrica | Fórmula | ¿Qué mide? |
+| :--- | :---: | :--- |
+| Sobreimpulso $M_p$ | $(y_{max} - SP) / \Delta SP \times 100\%$ | Cuánto superó la temperatura al SetPoint |
+| Tiempo de subida $t_r$ | $t_{90\%} - t_{10\%}$ | Rapidez para llegar al valor deseado |
+| Tiempo de establecimiento $t_s$ | — | Cuánto tarda en entrar y mantenerse en la banda del 2% o 5% |
+| Error estacionario $e_{ss}$ | $SP - y_{ss}$ | Error residual cuando el sistema se estabiliza |
+| IAE | $\int \|e(t)\| \, dt$ | Error acumulado total |
+| ISE | $\int e^2(t) \, dt$ | Penaliza más los errores grandes |
+| ITAE | $\int t \cdot \|e(t)\| \, dt$ | Penaliza errores que persisten en el tiempo |
+| TV(u) | $\sum \|u_{k+1} - u_k\|$ | Suavidad del PWM (menor = más suave) |
+
+> **Nota sobre el sobreimpulso:** Este proyecto calcula **dos variantes** del sobreimpulso:
+> - **Método 1** *(estándar de control)* — relativo al escalón: $M_{p,\Delta SP} = OS_{abs} / |\Delta SP|$
+> - **Método 2** *(norma industrial)* — relativo al SetPoint: $M_{p,SP} = OS_{abs} / |SP|$
+>
+> En plantas térmicas, como $|SP| > |\Delta SP|$, el Método 2 siempre da un valor más pequeño. Ambos son correctos; depende del contexto en que se utilicen.
 
 ---
 
@@ -58,111 +97,272 @@ Para comparar qué controlador es mejor, se calculan índices numéricos objetiv
 ```text
 ModelosBJT/
 │
-├── AnalisisDatos/              # Reportes finales generados automáticamente
-│   ├── Control/                # Excels con métricas y gráficos de lazo cerrado
-│   └── Fopdt/                  # Excels con modelos FOPDT y parámetros PID
+├── 📁 src/                              # Código fuente Python
+│   ├── analisis_control4.py            # ⭐ Análisis principal de lazo cerrado (versión actual)
+│   ├── analisis_fopdt.py               # Identificación FOPDT y sintonización PID
+│   └── comparacion_modelos.py          # Comparación modelo físico vs. datos reales
 │
-├── data/                       # Datos experimentales en lazo abierto (escalones PWM)
-│   ├── DatosGrafica_AdquirirQ1_*.xlsx
-│   └── *.png                   # Gráficas de ensayos previos
+├── 📁 dataControl/                      # Datos de ensayos en lazo CERRADO (con controlador)
+│   ├── DatosGrafica_ControlQ1_*.xlsx   # Ensayo de 1 transistor
+│   └── DatosGrafica_ControlQ1Q2_*.xlsx # Ensayo simultáneo de 2 transistores
 │
-├── dataControl/                # Datos de ensayos de control PID en lazo cerrado
-│   ├── DatosGrafica_ControlQ1_*.xlsx       # Ensayos de 1 planta (Q1)
-│   └── DatosGrafica_ControlQ1Q2_*.xlsx     # Ensayos de 2 plantas simultáneas (Q1 y Q2)
+├── 📁 data/                             # Datos de ensayos en lazo ABIERTO (escalón de PWM)
+│   └── DatosGrafica_AdquirirQ1_*.xlsx
 │
-├── matlab/                     # Scripts y archivos de apoyo en MATLAB (.mlx)
+├── 📁 AnalisisDatos/                    # Reportes generados automáticamente ← no editar
+│   ├── Control/                         # Resultados de analisis_control4.py
+│   └── Fopdt/                           # Resultados de analisis_fopdt.py
 │
-├── src/                        # Código fuente en Python
-│   ├── analisis_fopdt.py       # Identificación de sistemas FOPDT y sintonización PID
-│   ├── analisis_control.py     # Análisis de desempeño temporal, error y perturbaciones
-│   └── comparacion_modelos.py  # Ajuste de parámetros físicos frente a curvas reales
+├── 📁 matlab/                           # Scripts de apoyo en MATLAB (.mlx)
 │
-└── README.md                   # Documentación principal
+├── CAMBIOS_ANALISIS_CONTROL4.md        # Documentación técnica del módulo de control
+└── README.md                           # Este archivo
 ```
 
 ---
 
 ## 🚀 Instalación y Requisitos
 
-Requiere **Python 3.10** o superior. Instala las librerías necesarias con un solo comando:
+### Requisitos
+
+- **Python 3.10** o superior
+- Las siguientes librerías (todas instalables con `pip`)
 
 ```bash
-pip install numpy pandas matplotlib control scipy openpyxl Pillow
+pip install numpy pandas matplotlib scipy openpyxl Pillow
+```
+
+### Verificar que todo funciona
+
+```bash
+python -c "import numpy, pandas, matplotlib, openpyxl; print('✅ Todo instalado correctamente')"
+```
+
+### Clonar el repositorio
+
+```bash
+git clone <url-del-repositorio>
+cd ModelosBJT
 ```
 
 ---
 
 ## 🛠️ Guía de Uso Paso a Paso
 
-### 1. Identificación del Sistema y Sintonización PID (`analisis_fopdt.py`)
-Permite seleccionar interactivamente cualquier archivo de la carpeta `data/`:
+### Flujo general del proyecto
+
+```mermaid
+flowchart TD
+    A["📂 Datos experimentales\n(Excel en data/ o dataControl/)"]
+    A --> B{"¿Qué quieres analizar?"}
+
+    B -->|"Lazo abierto\n(identificar la planta)"| C["analisis_fopdt.py"]
+    B -->|"Lazo cerrado\n(evaluar el controlador)"| D["analisis_control4.py"]
+    B -->|"Validar modelo\nteórico vs real"| E["comparacion_modelos.py"]
+
+    C --> F["📊 Parámetros K, τ, θ\n+ Ganancias PID\n→ AnalisisDatos/Fopdt/"]
+    D --> G["📊 Métricas de desempeño\n+ Gráficas técnicas\n→ AnalisisDatos/Control/"]
+    E --> H["📊 Gráfica comparativa\nmodelo vs medición"]
+```
+
+---
+
+### Paso 1 — Identificar la planta (`analisis_fopdt.py`)
+
+Usa los datos de **lazo abierto** (carpeta `data/`) para estimar el modelo matemático de la planta.
+
 ```bash
 python src/analisis_fopdt.py
 ```
-**¿Qué hace el script?**
-1. Recorta el escalón útil y calcula los parámetros FOPDT mediante dos métodos gráficos y el modelo físico térmico.
-2. Analiza los rangos óptimos recomendados para el tiempo de muestreo ($T_s$).
-3. Solicita por consola el tiempo de muestreo deseado y sintoniza automáticamente controladores **PID** usando reglas de **Ziegler-Nichols**, optimización **IAE** y ajuste **Empírico**.
-4. **Exporta un reporte Excel completo** a `AnalisisDatos/Fopdt/` que incluye:
-   - Tabla de parámetros de los modelos identificados.
-   - Tabla de ganancias PID calculadas ($K_p$, $K_i$, $K_d$).
-   - **La imagen del gráfico ($2\times 2$) incrustada directamente en la hoja de cálculo**.
-5. Muestra las curvas interactivas comparando la planta real frente a los modelos simulados.
+
+El script te pedirá que elijas un archivo y luego hará automáticamente:
+
+1. Detecta el escalón de PWM y recorta la región útil de la señal.
+2. Estima los parámetros **FOPDT** ($K_p$, $\tau$, $\theta$) por tres métodos:
+   - Método gráfico de Smith
+   - Ajuste por mínimos cuadrados (*curve fitting*)
+   - Modelo físico térmico (convección + radiación)
+3. Recomienda el rango óptimo para el tiempo de muestreo $T_s$.
+4. Te pide ingresar $T_s$ y calcula los parámetros PID por tres reglas:
+   - **Ziegler-Nichols** (agresivo, decaimiento 1/4)
+   - **Criterio IAE** (mínimo error acumulado)
+   - **Empírico** (ajuste conservador)
+5. Exporta un reporte Excel a `AnalisisDatos/Fopdt/` con tablas y gráficas incrustadas.
+6. Muestra gráficas interactivas de la planta real vs. modelos estimados.
+
+**Formato del archivo de entrada esperado (`data/*.xlsx`):**
+
+| Columna | Nombre | Descripción |
+| :---: | :---: | :--- |
+| A | `Tiempo` | Tiempo en segundos |
+| B | `Temperatura` | Temperatura medida en °C |
+| C | `Corriente` | Corriente en mA (opcional) |
+| D | `PWM` | Ciclo de trabajo en % (0–100) |
 
 ---
 
-### 2. Evaluación de Ensayos de Control en Lazo Cerrado (`analisis_control.py`)
-Permite evaluar ensayos reales de control guardados en la carpeta `dataControl/`:
+### Paso 2 — Evaluar el controlador (`analisis_control4.py`) ⭐
+
+Usa los datos de **lazo cerrado** (carpeta `dataControl/`) para evaluar el desempeño del controlador PID.
+
 ```bash
-python src/analisis_control.py
+# Modo interactivo (te muestra un menú para elegir archivo)
+python src/analisis_control4.py
+
+# Modo directo (pasar el archivo como argumento)
+python src/analisis_control4.py dataControl/DatosGrafica_ControlQ1Q2_20261029_170145.xlsx
 ```
-**¿Qué hace el script?**
-1. **Detección automática de la configuración:** Acepta tanto archivos de **un solo transistor (`ControlQ1`)** como de **dos transistores simultáneos (`ControlQ1Q2`)**.
-2. **Cálculo de métricas temporales:** Sobreimpulso ($OS\%$), tiempo de subida ($t_r$), tiempo de establecimiento al 2% y 5% ($t_s$), y error de régimen estacionario ($e_{ss}$).
-3. **Cálculo de índices integrales y esfuerzo:** $IAE$, $ISE$, $ITAE$, PWM máximo/estacionario y variación total $TV(u)$.
-4. **Análisis de perturbaciones térmicas:** Si durante la prueba se aplicó una perturbación (enfriamiento forzado), detecta automáticamente:
-   - Momento del inicio de la caída de temperatura.
-   - Temperatura mínima alcanzada (nadir) y caída total ($\Delta T$).
-   - Reacción y saturación de la señal PWM.
-   - Tiempo de recuperación al setpoint e $IAE$ exclusivo de la perturbación.
-5. **Genera reporte Excel idéntico al formato de laboratorio** en `AnalisisDatos/Control/AnalisisControl_{fecha}.xlsx` con la imagen del gráfico de 4 paneles incrustada en la misma hoja.
-6. Muestra las 4 gráficas interactivas: *Respuesta temporal vs SetPoint*, *Esfuerzo de control PWM*, *Señal de error* y *Consumo de corriente*.
+
+El script realiza automáticamente:
+
+1. **Limpieza y remuestreo** de los datos a una malla temporal uniforme de 1 segundo.
+2. **Detección del escalón de SetPoint** y descarte de pulsos espurios (*glitches*).
+3. **Cálculo de métricas de respuesta transitoria:**
+   - Sobreimpulso por dos métodos (relativo al escalón y al SetPoint)
+   - Tiempo de subida $t_r$, tiempo de pico $t_p$, tiempos de establecimiento $t_{s,2\%}$ y $t_{s,5\%}$
+   - Error en estado estacionario $e_{ss}$
+4. **Clasificación automática del comportamiento dinámico:**
+   - Sobreamortiguado (sin sobreimpulso)
+   - Subamortiguado Cuasi-crítico / Óptimo
+   - Subamortiguado Moderado
+   - Subamortiguado Pronunciado
+   - Altamente Oscilatorio / Crítico
+5. **Detección de perturbaciones externas** (enfriamiento o calentamiento forzado), reportando caída de temperatura, reacción del PWM y tiempo de recuperación.
+6. **Reporte en consola** con tabla comparativa entre $Q_1$ y $Q_2$.
+7. **Exportación a Excel** con 5 hojas técnicas y gráficas incrustadas.
+8. **Figuras interactivas** con 4 paneles.
+
+**Ejemplo de salida en consola:**
+
+```
+[2] FASE DE RESPONSIVA AL ESCALÓN:
+Métrica                              | Q1               | Q2
+--------------------------------------------------------------------------
+SetPoint Objetivo [°C]               | 50.00            | 50.00
+Magnitud del Escalón ΔSP [°C]        | 13.00            | 14.00
+  -> MÉTODO 1: OS (% de ΔSP)         | 11.54 %          | 10.71 %
+  -> MÉTODO 2: OS (% de SP)          | 3.00 %           | 3.00 %
+Comportamiento Transitorio           | MODERATE_UNDERDAMPED
+Factor Amortiguamiento Est. (ζ)      | 0.566            | 0.579
+Tiempo de Subida tr (10-90%) [s]     | 41.0             | 40.0
+Tiempo de Establ. ts (5%) [s]        | 185.0            | 125.0
+```
+
+**Formato del archivo de entrada esperado (`dataControl/*.xlsx`):**
+
+Para ensayo de **un transistor** (`ControlQ1_*.xlsx`):
+
+| Columna | Nombre | Descripción |
+| :---: | :---: | :--- |
+| A | `Tiempo` | Tiempo en segundos |
+| B | `Temperatura1` | Temperatura de Q1 en °C |
+| C | `Corriente1` | Corriente en mA |
+| D | `PWM1` | Ciclo de trabajo en % |
+| E | `SetPoint` | Temperatura de referencia en °C |
+
+Para ensayo de **dos transistores** (`ControlQ1Q2_*.xlsx`), se agregan las columnas:
+
+| Columna | Nombre | Descripción |
+| :---: | :---: | :--- |
+| F | `Temperatura2` | Temperatura de Q2 en °C |
+| G | `Corriente2` | Corriente de Q2 en mA |
+| H | `PWM2` | Ciclo de trabajo de Q2 en % |
+| I | `SetPoint2` | Referencia de Q2 en °C |
+
+Opcionalmente, el archivo puede incluir las ganancias PID usadas (columnas `Kp`, `Ki`, `Kd`, `Ts`, `Planta`) para que aparezcan en el reporte.
 
 ---
 
-### 3. Comparación Física Detallada (`comparacion_modelos.py`)
-Para contrastar el modelo físico analítico frente a un ajuste de curvas experimental:
+### Paso 3 — Comparar modelo físico (`comparacion_modelos.py`)
+
+Permite calibrar el modelo físico térmico (basado en convección y radiación de Stefan-Boltzmann) ajustando sus parámetros a los datos reales.
+
 ```bash
 python src/comparacion_modelos.py
 ```
-Permite ajustar constantes térmicas reales (área efectiva, emisividad, capacidad térmica) para calibrar el modelo teórico.
+
+> **Nota:** Este script requiere editar manualmente la ruta del archivo y el tiempo muerto $\theta$ directamente en el código (variables `PATH_DOCUMENTO` y `THETA_FIS` al inicio del archivo).
 
 ---
 
-## 📊 Formato de los Reportes Excel Generados
+## 📊 Reportes Excel Generados
 
-Ambos scripts principales automatizan la generación de reportes listos para informes técnicos y artículos científicos:
+`analisis_control4.py` genera un libro Excel en `AnalisisDatos/Control/` con 5 hojas:
 
-| Elemento en la Hoja | Descripción |
+| Hoja | Contenido |
 | :--- | :--- |
-| **Columna A** | Lista clara de variables analizadas (Setpoint, Sobreciclo, Tiempos, Índices $IAE/ISE/ITAE$, Corrientes). |
-| **Columna B y C** | Valores numéricos nativos formateados para la Planta $Q_1$ (y Planta $Q_2$ si aplica). |
-| **Columnas E a J (Superior)** | Tabla resumen con las ganancias configuradas en el controlador ($K_p$, $K_i$, $K_d$, $T_s$). |
-| **Celda E5 / E6** | **Gráfico del proceso incrustado en alta resolución** alineado al lado de los datos. |
+| **ResumenControl** | Tabla ejecutiva comparando Q1 y Q2, parámetros PID y gráfica 2×2 incrustada |
+| **Perturbaciones** | Tabla con métricas de cada perturbación detectada (caída, recuperación, IAE) |
+| **ParametrosPID** | Ganancias $K_p$, $K_i$, $K_d$, $T_s$ leídas del archivo de datos |
+| **DatosSegmentados** | Malla uniforme completa con etiqueta de fase por cada muestra |
+| **Graficas** | Figura de zoom por fase (Escalón + cada Perturbación) |
+
+Las filas de **Sobreimpulso Método 1 y Método 2** están resaltadas en amarillo para facilitar su comparación.
 
 ---
 
-## 💡 Glosario Rápido para Estudiantes
+## 💡 Glosario para Estudiantes
 
-* **¿Por qué importa el tiempo de muestreo ($T_s$)?**
-  Si el tiempo de muestreo es muy lento, el controlador no reaccionará a tiempo y puede volverse inestable. Si es demasiado rápido, aumentará el costo computacional innecesariamente. La regla práctica sugiere elegir $T_s$ entre el 5% y 15% de $\tau$.
-* **¿Qué significa que el IAE sea menor?**
-  Significa que el controlador devolvió la temperatura a la referencia más rápido y con menos desviación acumulada.
-* **¿Qué nos dice la Variación Total $TV(u)$?**
-  Indica si la señal de control es ruidosa o agresiva. Un control que oscila bruscamente desgasta los componentes electrónicos y produce ruido electromagnético.
+<details>
+<summary><b>¿Por qué hay dos métodos de sobreimpulso y cuál uso?</b></summary>
+
+Depende del contexto:
+- Si comparas **controladores entre sí** o calculas el factor de amortiguamiento ζ → usa **Método 1** (relativo al escalón ΔSP). Es el estándar de los libros de control automático.
+- Si verificas una **especificación de seguridad** tipo "la temperatura no debe superar en más del 3% el SetPoint fijado" → usa **Método 2** (relativo al SetPoint SP).
+
+Como en plantas térmicas la temperatura inicial (ej. 37 °C) ya es mayor a cero, el Método 2 siempre da un número más chico. Ambos son válidos y complementarios.
+
+</details>
+
+<details>
+<summary><b>¿Qué significa ζ (factor de amortiguamiento)?</b></summary>
+
+Describe qué tan oscilatoria es la respuesta:
+
+| Valor de ζ | Comportamiento | Visual |
+| :---: | :--- | :--- |
+| ζ ≥ 1.0 | Sin oscilación — llega suavemente al SetPoint | Curva sin pico |
+| ζ ≈ 0.7 | Óptimo — llega rápido con sobreimpulso mínimo (<5%) | Pequeño pico y se asienta |
+| ζ ≈ 0.5 | Moderado — sobreimpulso notable pero manejable (5–15%) | Pico visible |
+| ζ < 0.35 | Oscilatorio — rebota varias veces antes de estabilizarse | Varias oscilaciones |
+
+</details>
+
+<details>
+<summary><b>¿Por qué el tiempo de muestreo Ts importa tanto?</b></summary>
+
+Si $T_s$ es muy grande (lento), el controlador no ve los cambios de temperatura a tiempo y puede oscilar o volverse inestable. Si es muy pequeño (rápido), gasta recursos de cómputo innecesariamente y puede amplificar ruido.
+
+La regla práctica: elegir $T_s$ entre el **5% y el 15% de la constante de tiempo τ** de la planta.
+
+</details>
+
+<details>
+<summary><b>¿Qué significa que el IAE sea menor?</b></summary>
+
+Que el controlador redujo el error más rápido y con menos desviación acumulada. Al comparar dos controladores con los mismos datos, el que tenga menor IAE fue más eficiente para corregir el error a lo largo del tiempo.
+
+</details>
+
+<details>
+<summary><b>¿Qué es la Variación Total TV(u) y por qué importa?</b></summary>
+
+Mide cuánto "se mueve" la señal PWM. Un TV(u) alto significa que el actuador está oscilando bruscamente entre valores altos y bajos, lo que:
+- Genera calor extra en el transistor BJT
+- Produce ruido electromagnético
+- Desgasta los componentes
+
+Un buen controlador tiene TV(u) bajo sin sacrificar el tiempo de establecimiento.
+
+</details>
 
 ---
 
 ## 👥 Autoría y Licencia
 
-Desarrollado como parte del proyecto de grado / tesis en Modelado y Control Automático de Sistemas Térmicos. Libre para fines académicos, educativos y de investigación.
+Desarrollado como proyecto de grado / tesis en **Modelado y Control Automático de Sistemas Térmicos**.  
+Libre para uso académico, educativo y de investigación.
+
+---
+
+*¿Tienes dudas o encontraste un error? Revisa la documentación técnica detallada en [`CAMBIOS_ANALISIS_CONTROL4.md`](CAMBIOS_ANALISIS_CONTROL4.md).*
